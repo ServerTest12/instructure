@@ -1,18 +1,17 @@
 export default async function handler(req, res) {
     let { url } = req.query;
 
-    // Check if URL parameter is provided
+    // Check if the URL parameter is missing
     if (!url) {
         return res.status(400).json({ error: "Missing URL parameter" });
     }
 
     try {
-        // Decode the URL parameter twice to handle encoded query parameters correctly
-        url = decodeURIComponent(decodeURIComponent(url));
+        // Decode the URL only once
+        url = decodeURIComponent(url);
 
-        // Ensure the URL is a valid HTTP or HTTPS URL
-        const validUrl = new URL(url);
-        if (!validUrl.protocol.startsWith('http')) {
+        // Validate if the URL starts with 'http' or 'https'
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
             throw new Error('Invalid URL. Only HTTP and HTTPS URLs are allowed.');
         }
 
@@ -27,13 +26,16 @@ export default async function handler(req, res) {
         let data = await response.text();
 
         // Modify the <title> tag to change the browser tab title
-        const customTitle = "Dashboard"; // Change this to your preferred tab title
+        const customTitle = "My Custom Tab Title"; // Change this to your preferred tab title
         data = data.replace(/<title>(.*?)<\/title>/, `<title>${customTitle}</title>`);
 
         // Set the response headers and send the modified HTML back
         res.setHeader("Content-Type", "text/html");
         res.status(200).send(data);
     } catch (error) {
+        // Log the error to help with debugging
+        console.error("Error processing the URL:", error.message);
         res.status(500).json({ error: "Error fetching URL", details: error.message });
     }
 }
+
